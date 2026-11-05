@@ -1,0 +1,32 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+# Local databases and persistent data
+*.db
+*.db-journal
+/data/
+
+# Logs and test output
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+/coverage/
+
+# Tooling
+.DS_Store
+*.tsbuildinfo
+/next-env.d.ts
