@@ -34,11 +34,13 @@ Abre <http://localhost:3000> e inicia sesión con las credenciales de administra
 
 ## Docker
 
-Construye y ejecuta la imagen con una base persistente:
+Configura `.env` con `ADMIN_EMAIL`, `ADMIN_PASSWORD` (mínimo 8 caracteres) y `AUTH_SECRET` (mínimo 32 bytes). Al iniciar, el contenedor crea el primer administrador con esas variables si todavía no existe ningún usuario; en reinicios posteriores no cambia la cuenta ni su contraseña. No se ejecuta el seed de datos de prueba ni se borran clientes, vehículos o pedidos.
 
 ```bash
+cp .env.example .env
+# Edita .env y reemplaza los valores de ejemplo por valores privados.
 docker build -t opengarageflow .
-docker run --rm -p 3000:3000 --env-file .env -e DATABASE_URL=file:/app/data/opengarageflow.db -v opengarageflow-data:/app/data opengarageflow
+docker run -d --name opengarageflow -p 3000:3000 --env-file .env -e DATABASE_URL=file:/app/data/opengarageflow.db -v opengarageflow-data:/app/data opengarageflow
 ```
 
-El contenedor ejecuta las migraciones Prisma al arrancar. La base predeterminada vive en `/app/data/opengarageflow.db`; configura `DATABASE_URL` con una ruta SQLite persistida. Define credenciales de administrador y un `AUTH_SECRET` exclusivo y fuerte en cada entorno, no uses los valores locales de ejemplo. `.env` no se copia en la imagen.
+El contenedor ejecuta las migraciones Prisma y crea el primer usuario al arrancar. La base predeterminada vive en `/app/data/opengarageflow.db`; configura `DATABASE_URL` con una ruta SQLite persistida. Define un `AUTH_SECRET` exclusivo y fuerte en cada entorno y no uses los valores locales de ejemplo. `.env` no se copia en la imagen.
