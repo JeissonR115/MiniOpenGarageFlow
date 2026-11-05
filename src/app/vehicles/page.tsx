@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { listCustomers } from "@/lib/customers";
 import { listVehicles } from "@/lib/vehicles";
 import { DeleteVehicleForm } from "./delete-vehicle-form";
@@ -11,10 +10,7 @@ export default async function VehiclesPage() {
 
   return (
     <main>
-      <nav className="navigation">
-        <Link href="/">Inicio</Link>
-        <Link href="/customers">Clientes</Link>
-      </nav>
+      <p className="eyebrow">GESTIÓN DEL TALLER</p>
       <h1>Vehículos</h1>
       <section className="panel">
         <h2>Registrar vehículo</h2>

@@ -16,6 +16,13 @@ export class VehicleCustomerNotFoundError extends Error {
   }
 }
 
+export class VehicleHasOrdersError extends Error {
+  constructor() {
+    super("No se puede eliminar el vehículo mientras tenga pedidos asociados.");
+    this.name = "VehicleHasOrdersError";
+  }
+}
+
 function mapVehicleError(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") throw new VehiclePlateConflictError();
@@ -49,6 +56,16 @@ export async function updateVehicle(data: VehicleUpdateInput, db: PrismaClient =
   }
 }
 
-export function deleteVehicle(id: number, db: PrismaClient = prisma) {
-  return db.vehiculo.delete({ where: { id } });
+export async function deleteVehicle(id: number, db: PrismaClient = prisma) {
+  try {
+    return await db.vehiculo.delete({ where: { id } });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003"
+    ) {
+      throw new VehicleHasOrdersError();
+    }
+    throw error;
+  }
 }

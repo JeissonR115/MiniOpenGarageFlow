@@ -6,6 +6,7 @@ import {
   deleteVehicle,
   updateVehicle,
   VehicleCustomerNotFoundError,
+  VehicleHasOrdersError,
   VehiclePlateConflictError,
 } from "@/lib/vehicles";
 import { vehicleSchema, vehicleUpdateSchema } from "@/lib/validations/vehicle";
@@ -23,7 +24,11 @@ function vehicleFields(formData: FormData) {
 }
 
 function errorMessage(error: unknown): string {
-  if (error instanceof VehiclePlateConflictError || error instanceof VehicleCustomerNotFoundError) {
+  if (
+    error instanceof VehiclePlateConflictError ||
+    error instanceof VehicleCustomerNotFoundError ||
+    error instanceof VehicleHasOrdersError
+  ) {
     return error.message;
   }
   throw error;
@@ -59,8 +64,12 @@ export async function deleteVehicleAction(
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id < 1) return { error: "El identificador del vehículo no es válido." };
 
-  await deleteVehicle(id);
-  revalidatePath("/vehicles");
-  revalidatePath("/customers");
-  return { success: "Vehículo eliminado." };
+  try {
+    await deleteVehicle(id);
+    revalidatePath("/vehicles");
+    revalidatePath("/customers");
+    return { success: "Vehículo eliminado." };
+  } catch (error) {
+    return { error: errorMessage(error) };
+  }
 }

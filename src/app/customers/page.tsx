@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CustomerForm } from "./customer-form";
 import { DeleteCustomerForm } from "./delete-customer-form";
 import { listCustomers } from "@/lib/customers";
@@ -10,10 +9,7 @@ export default async function CustomersPage() {
 
   return (
     <main>
-      <nav className="navigation">
-        <Link href="/">Inicio</Link>
-        <Link href="/vehicles">Vehículos</Link>
-      </nav>
+      <p className="eyebrow">GESTIÓN DEL TALLER</p>
       <h1>Clientes</h1>
       <section className="panel">
         <h2>Registrar cliente</h2>

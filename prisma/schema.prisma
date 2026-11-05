@@ -17,12 +17,35 @@ model Cliente {
 }
 
 model Vehiculo {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   clienteId Int
-  placa     String  @unique
+  placa     String   @unique
   marca     String
   modelo    String
   anio      Int?
   color     String?
-  cliente   Cliente @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  pedidos   Pedido[]
+}
+
+model Usuario {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  correo        String   @unique
+  passwordHash  String   @map("password_hash")
+  fechaRegistro DateTime @default(now()) @map("fecha_registro")
+
+  @@map("usuarios")
+}
+
+model Pedido {
+  id               Int       @id @default(autoincrement())
+  vehiculoId       Int       @map("vehiculo_id")
+  descripcion      String
+  estado           String    @default("pendiente")
+  fechaCreacion    DateTime  @default(now()) @map("fecha_creacion")
+  fechaTerminacion DateTime? @map("fecha_terminacion")
+  vehiculo         Vehiculo  @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
+
+  @@map("pedidos")
 }

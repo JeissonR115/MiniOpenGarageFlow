@@ -11,26 +11,29 @@
     "db:seed": "prisma db seed"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.6.0",
     "@prisma/adapter-better-sqlite3": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.2.3",
+    "jose": "^6.2.15",
+    "lucide-react": "^1.69.0",
     "next": "^16.4.5",
     "prisma": "^7.10.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "tsx": "^4.23.15",
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.0.0",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.4.5",
     "typescript": "^5.9.0",
-    "vitest": "^4.0.0",
-    "tsx": "^4.20.6"
+    "vitest": "^4.0.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
