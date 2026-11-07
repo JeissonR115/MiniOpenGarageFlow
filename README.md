@@ -44,3 +44,8 @@ docker run -d --name opengarageflow -p 3000:3000 --env-file .env -e DATABASE_URL
 ```
 
 El contenedor ejecuta las migraciones Prisma y crea el primer usuario al arrancar. La base predeterminada vive en `/app/data/opengarageflow.db`; configura `DATABASE_URL` con una ruta SQLite persistida. Define un `AUTH_SECRET` exclusivo y fuerte en cada entorno y no uses los valores locales de ejemplo. `.env` no se copia en la imagen.
+
+## Documentación
+
+- [Descripción del proyecto](docs/proyecto.md)
+- [DevOps, GitHub Actions y Docker](docs/devops.md)
