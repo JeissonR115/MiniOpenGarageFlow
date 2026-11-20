@@ -3,6 +3,10 @@ import { AUTH_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (pathname === "/api/health") {
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const userId = token ? await verifySessionToken(token) : null;
 
@@ -20,5 +24,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

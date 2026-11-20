@@ -1,13 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { hasPermission } from "@/lib/authorization";
 import {
   createCustomer,
   CustomerHasVehiclesError,
   deleteCustomer,
   updateCustomer,
 } from "@/lib/customers";
-import { customerSchema, customerUpdateSchema } from "@/lib/validations/customer";
+import {
+  customerSchema,
+  customerUpdateSchema,
+} from "@/lib/validations/customer";
 
 export type CustomerActionState = {
   error?: string;
@@ -28,12 +32,17 @@ export async function saveCustomerAction(
   formData: FormData,
 ): Promise<CustomerActionState> {
   const rawId = formData.get("id");
+  if (!(await hasPermission(rawId ? "update" : "create"))) {
+    return { error: "No tienes permiso para realizar esta acción." };
+  }
+
   if (rawId) {
     const parsed = customerUpdateSchema.safeParse({
       ...customerFields(formData),
       id: rawId,
     });
-    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+    if (!parsed.success)
+      return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
     await updateCustomer(parsed.data);
     revalidatePath("/customers");
@@ -41,7 +50,8 @@ export async function saveCustomerAction(
   }
 
   const parsed = customerSchema.safeParse(customerFields(formData));
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+  if (!parsed.success)
+    return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
   await createCustomer(parsed.data);
   revalidatePath("/customers");
@@ -52,15 +62,21 @@ export async function deleteCustomerAction(
   _previousState: CustomerActionState,
   formData: FormData,
 ): Promise<CustomerActionState> {
+  if (!(await hasPermission("delete"))) {
+    return { error: "No tienes permiso para realizar esta acción." };
+  }
+
   const id = Number(formData.get("id"));
-  if (!Number.isInteger(id) || id < 1) return { error: "El identificador del cliente no es válido." };
+  if (!Number.isInteger(id) || id < 1)
+    return { error: "El identificador del cliente no es válido." };
 
   try {
     await deleteCustomer(id);
     revalidatePath("/customers");
     return { success: "Cliente eliminado." };
   } catch (error) {
-    if (error instanceof CustomerHasVehiclesError) return { error: error.message };
+    if (error instanceof CustomerHasVehiclesError)
+      return { error: error.message };
     throw error;
   }
 }

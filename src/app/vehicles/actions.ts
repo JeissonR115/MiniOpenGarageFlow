@@ -1,12 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { hasPermission } from "@/lib/authorization";
 import {
   createVehicle,
   deleteVehicle,
   updateVehicle,
   VehicleCustomerNotFoundError,
   VehicleHasOrdersError,
+  VehicleHasServicesError,
   VehiclePlateConflictError,
 } from "@/lib/vehicles";
 import { vehicleSchema, vehicleUpdateSchema } from "@/lib/validations/vehicle";
@@ -27,7 +29,8 @@ function errorMessage(error: unknown): string {
   if (
     error instanceof VehiclePlateConflictError ||
     error instanceof VehicleCustomerNotFoundError ||
-    error instanceof VehicleHasOrdersError
+    error instanceof VehicleHasOrdersError ||
+    error instanceof VehicleHasServicesError
   ) {
     return error.message;
   }
@@ -39,19 +42,30 @@ export async function saveVehicleAction(
   formData: FormData,
 ): Promise<CustomerActionState> {
   const rawId = formData.get("id");
+  if (!(await hasPermission(rawId ? "update" : "create"))) {
+    return { error: "No tienes permiso para realizar esta acción." };
+  }
+
   try {
     if (rawId) {
-      const parsed = vehicleUpdateSchema.safeParse({ ...vehicleFields(formData), id: rawId });
-      if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+      const parsed = vehicleUpdateSchema.safeParse({
+        ...vehicleFields(formData),
+        id: rawId,
+      });
+      if (!parsed.success)
+        return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
       await updateVehicle(parsed.data);
     } else {
       const parsed = vehicleSchema.safeParse(vehicleFields(formData));
-      if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+      if (!parsed.success)
+        return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
       await createVehicle(parsed.data);
     }
     revalidatePath("/vehicles");
     revalidatePath("/customers");
-    return { success: rawId ? "Vehículo actualizado." : "Vehículo registrado." };
+    return {
+      success: rawId ? "Vehículo actualizado." : "Vehículo registrado.",
+    };
   } catch (error) {
     return { error: errorMessage(error) };
   }
@@ -61,8 +75,13 @@ export async function deleteVehicleAction(
   _previousState: CustomerActionState,
   formData: FormData,
 ): Promise<CustomerActionState> {
+  if (!(await hasPermission("delete"))) {
+    return { error: "No tienes permiso para realizar esta acción." };
+  }
+
   const id = Number(formData.get("id"));
-  if (!Number.isInteger(id) || id < 1) return { error: "El identificador del vehículo no es válido." };
+  if (!Number.isInteger(id) || id < 1)
+    return { error: "El identificador del vehículo no es válido." };
 
   try {
     await deleteVehicle(id);

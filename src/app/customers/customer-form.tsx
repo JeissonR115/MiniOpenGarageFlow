@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { CustomerActionState, saveCustomerAction } from "./actions";
+import { Save, UserRoundPlus } from "lucide-react";
 
 type CustomerFormProps = {
   customer?: {
@@ -16,7 +17,11 @@ type CustomerFormProps = {
 const initialState: CustomerActionState = {};
 
 export function CustomerForm({ customer }: CustomerFormProps) {
-  const [state, action, pending] = useActionState(saveCustomerAction, initialState);
+  const [state, action, pending] = useActionState(
+    saveCustomerAction,
+    initialState,
+  );
+  const ActionIcon = customer ? Save : UserRoundPlus;
 
   return (
     <form action={action} className="form-grid">
@@ -35,13 +40,30 @@ export function CustomerForm({ customer }: CustomerFormProps) {
       </label>
       <label>
         Correo (opcional)
-        <input name="correo" type="email" defaultValue={customer?.correo ?? ""} />
+        <input
+          name="correo"
+          type="email"
+          defaultValue={customer?.correo ?? ""}
+        />
       </label>
       <button disabled={pending} type="submit">
-        {pending ? "Guardando..." : customer ? "Guardar cambios" : "Registrar cliente"}
+        <ActionIcon aria-hidden="true" className="action-icon" />
+        {pending
+          ? "Guardando..."
+          : customer
+            ? "Guardar cambios"
+            : "Registrar cliente"}
       </button>
-      {state.error && <p className="feedback error" role="alert">{state.error}</p>}
-      {state.success && <p className="feedback success" role="status">{state.success}</p>}
+      {state.error && (
+        <p className="feedback error" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state.success && (
+        <p className="feedback success" role="status">
+          {state.success}
+        </p>
+      )}
     </form>
   );
 }

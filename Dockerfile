@@ -12,7 +12,7 @@ RUN npm ci
 FROM base AS prod-deps
 RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
@@ -43,4 +43,6 @@ RUN chmod +x docker-entrypoint.sh
 
 USER nextjs
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
 ENTRYPOINT ["./docker-entrypoint.sh"]

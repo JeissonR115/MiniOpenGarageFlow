@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { hasPermission } from "@/lib/authorization";
 import {
   createOrder,
   deleteOrder,
@@ -20,7 +21,10 @@ function orderFields(formData: FormData) {
 }
 
 function orderErrorMessage(error: unknown): string {
-  if (error instanceof OrderNotFoundError || error instanceof OrderVehicleNotFoundError) {
+  if (
+    error instanceof OrderNotFoundError ||
+    error instanceof OrderVehicleNotFoundError
+  ) {
     return error.message;
   }
   throw error;
@@ -31,14 +35,23 @@ export async function saveOrderAction(
   formData: FormData,
 ): Promise<CustomerActionState> {
   const rawId = formData.get("id");
+  if (!(await hasPermission(rawId ? "update" : "create"))) {
+    return { error: "No tienes permiso para realizar esta acción." };
+  }
+
   try {
     if (rawId) {
-      const parsed = orderUpdateSchema.safeParse({ ...orderFields(formData), id: rawId });
-      if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+      const parsed = orderUpdateSchema.safeParse({
+        ...orderFields(formData),
+        id: rawId,
+      });
+      if (!parsed.success)
+        return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
       await updateOrder(parsed.data);
     } else {
       const parsed = orderSchema.safeParse(orderFields(formData));
-      if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
+      if (!parsed.success)
+        return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
       await createOrder(parsed.data);
     }
 
@@ -55,8 +68,13 @@ export async function deleteOrderAction(
   _previousState: CustomerActionState,
   formData: FormData,
 ): Promise<CustomerActionState> {
+  if (!(await hasPermission("delete"))) {
+    return { error: "No tienes permiso para realizar esta acción." };
+  }
+
   const id = Number(formData.get("id"));
-  if (!Number.isInteger(id) || id < 1) return { error: "El identificador del pedido no es válido." };
+  if (!Number.isInteger(id) || id < 1)
+    return { error: "El identificador del pedido no es válido." };
 
   try {
     await deleteOrder(id);

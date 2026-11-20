@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { loginAction } from "@/app/auth-actions";
+import { LogIn } from "lucide-react";
 
 export function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, {});
@@ -27,8 +28,13 @@ export function LoginForm() {
           type="password"
         />
       </label>
-      {state.error && <p aria-live="polite" className="feedback error">{state.error}</p>}
+      {state.error && (
+        <p aria-live="polite" className="feedback error">
+          {state.error}
+        </p>
+      )}
       <button disabled={isPending} type="submit">
+        <LogIn aria-hidden="true" className="action-icon" />
         {isPending ? "Ingresando…" : "Iniciar sesión"}
       </button>
     </form>

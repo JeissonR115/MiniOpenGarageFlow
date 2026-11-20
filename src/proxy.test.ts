@@ -21,6 +21,19 @@ describe("route protection proxy", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
+  it("allows unauthenticated health checks but protects internal API routes", async () => {
+    const healthResponse = await proxy(
+      new NextRequest("http://localhost/api/health"),
+    );
+    const apiResponse = await proxy(
+      new NextRequest("http://localhost/api/exports/customers"),
+    );
+
+    expect(healthResponse.headers.get("x-middleware-next")).toBe("1");
+    expect(apiResponse.status).toBe(307);
+    expect(apiResponse.headers.get("location")).toBe("http://localhost/login");
+  });
+
   it("allows authenticated requests and redirects authenticated login visits", async () => {
     vi.stubEnv("AUTH_SECRET", "local-test-secret-with-at-least-32-bytes");
     const token = await createSessionToken(42);

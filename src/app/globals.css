@@ -138,7 +138,9 @@ select {
   font-size: 0.98rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 140ms ease, color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
 }
 
 .sidebar-link:hover {
@@ -193,11 +195,13 @@ select {
 }
 
 .app-content {
+  min-width: 0;
   min-height: 100vh;
   margin-left: 17.5rem;
 }
 
 main {
+  min-width: 0;
   width: min(100%, 74rem);
   margin: 0 auto;
   padding: 3.25rem clamp(1.5rem, 4vw, 4rem);
@@ -346,6 +350,14 @@ button:disabled {
   opacity: 0.65;
 }
 
+.action-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+  stroke-width: 1.9;
+  vertical-align: -0.15em;
+}
+
 .button-danger {
   background: var(--color-danger);
 }
@@ -395,6 +407,67 @@ button:disabled {
   line-height: 1;
 }
 
+.stat-card .last-registration {
+  display: grid;
+  gap: 0.35rem;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 1rem;
+}
+
+.stat-card .last-registration span:last-child {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.dashboard-insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-chart-panel {
+  min-width: 0;
+  margin: 0;
+}
+
+.dashboard-chart {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-chart-row {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 0.8fr) minmax(3rem, 2fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.dashboard-chart-row > strong {
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.dashboard-chart-track {
+  display: block;
+  height: 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.dashboard-chart-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
 .dashboard-orders {
   margin-top: 2rem;
 }
@@ -415,6 +488,76 @@ button:disabled {
   padding-bottom: 0.2rem;
   color: var(--color-muted);
   font-size: 0.9rem;
+}
+
+.list-filters {
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  align-items: end;
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.list-filters label {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.filter-actions {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 2.7rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filter-actions button,
+.filter-actions a {
+  display: inline-flex;
+  min-height: 2.7rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.filter-actions button {
+  border-color: var(--color-accent);
+}
+
+.filter-actions a {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.filter-actions a:hover {
+  border-color: var(--color-hover);
+  background: var(--color-background);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.pagination span {
+  color: var(--color-muted);
 }
 
 .table-scroll {
@@ -571,6 +714,10 @@ tbody tr:last-child td {
     margin: 1.5rem 0;
   }
 
+  .dashboard-insights {
+    grid-template-columns: 1fr;
+  }
+
   .stat-card {
     min-height: auto;
     grid-template-columns: 1fr auto;
@@ -579,6 +726,16 @@ tbody tr:last-child td {
 
   .stat-card strong {
     font-size: 2rem;
+  }
+
+  .filter-actions {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .filter-actions button,
+  .filter-actions a {
+    max-width: 100%;
   }
 
   th,

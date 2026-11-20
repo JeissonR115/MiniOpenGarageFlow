@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { deleteOrderAction } from "./actions";
+import { Trash2 } from "lucide-react";
 
 export function DeleteOrderForm({ orderId }: { orderId: number }) {
   const [state, formAction, isPending] = useActionState(deleteOrderAction, {});
@@ -10,9 +11,14 @@ export function DeleteOrderForm({ orderId }: { orderId: number }) {
     <form action={formAction}>
       <input name="id" type="hidden" value={orderId} />
       <button className="button-danger" disabled={isPending} type="submit">
+        <Trash2 aria-hidden="true" className="action-icon" />
         {isPending ? "Eliminando…" : "Eliminar pedido"}
       </button>
-      {state.error && <p aria-live="polite" className="feedback error">{state.error}</p>}
+      {state.error && (
+        <p aria-live="polite" className="feedback error">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }

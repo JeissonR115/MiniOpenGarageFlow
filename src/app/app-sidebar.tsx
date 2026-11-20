@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { CarFront, ClipboardList, House, LogOut, UsersRound, Wrench, X } from "lucide-react";
+import {
+  CarFront,
+  ClipboardList,
+  House,
+  LogOut,
+  UserRoundCog,
+  UsersRound,
+  Wrench,
+  X,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { logoutAction } from "./auth-actions";
 
@@ -18,9 +27,15 @@ const navigationItems: {
   { href: "/orders", label: "Pedidos", icon: ClipboardList },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ isAdministrator }: { isAdministrator: boolean }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const items = isAdministrator
+    ? [
+        ...navigationItems,
+        { href: "/users", label: "Usuarios", icon: UserRoundCog },
+      ]
+    : navigationItems;
 
   if (pathname === "/login") return null;
 
@@ -52,7 +67,12 @@ export function AppSidebar() {
         />
       )}
       <aside className={`sidebar${isOpen ? " is-open" : ""}`}>
-        <Link aria-label="OpenGarageFlow, ir a Inicio" className="sidebar-brand" href="/" onClick={closeSidebar}>
+        <Link
+          aria-label="OpenGarageFlow, ir a Inicio"
+          className="sidebar-brand"
+          href="/"
+          onClick={closeSidebar}
+        >
           <span className="brand-mark">
             <Wrench aria-hidden="true" />
           </span>
@@ -62,8 +82,12 @@ export function AppSidebar() {
           </span>
         </Link>
         <div className="sidebar-section-label">MENÚ PRINCIPAL</div>
-        <nav aria-label="Navegación principal" className="sidebar-navigation" id="primary-navigation">
-          {navigationItems.map(({ href, label, icon: Icon }) => {
+        <nav
+          aria-label="Navegación principal"
+          className="sidebar-navigation"
+          id="primary-navigation"
+        >
+          {items.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href;
             return (
               <Link
@@ -84,7 +108,11 @@ export function AppSidebar() {
           <span>Tu taller, en orden</span>
         </div>
         <form action={logoutAction}>
-          <button className="sidebar-logout" onClick={closeSidebar} type="submit">
+          <button
+            className="sidebar-logout"
+            onClick={closeSidebar}
+            type="submit"
+          >
             <LogOut aria-hidden="true" className="sidebar-link-icon" />
             <span>Cerrar sesión</span>
           </button>

@@ -1,4 +1,5 @@
 import { getDashboardData } from "@/lib/dashboard";
+import { DashboardInsights } from "./dashboard-insights";
 
 export const dynamic = "force-dynamic";
 
@@ -9,14 +10,34 @@ const dateFormatter = new Intl.DateTimeFormat("es-CO", {
 });
 
 export default async function Home() {
-  const { pendingCount, inProgressCount, completedTodayCount, activeOrders } =
-    await getDashboardData();
+  const dashboard = await getDashboardData();
+  const {
+    pendingCount,
+    inProgressCount,
+    completedTodayCount,
+    activeOrders,
+    customerCount,
+    vehicleCount,
+    lastRegistration,
+    vehiclesByBrand,
+    customerRegistrationsByMonth,
+  } = dashboard;
 
   return (
     <main>
       <p className="eyebrow">PANEL DEL TALLER</p>
-      <h1>Pedidos del taller</h1>
-      <p className="page-intro">Un resumen rápido del trabajo pendiente y en curso.</p>
+      <h1>Resumen del taller</h1>
+      <p className="page-intro">
+        Indicadores de clientes, vehículos y trabajo en curso.
+      </p>
+
+      <DashboardInsights
+        customerCount={customerCount}
+        vehicleCount={vehicleCount}
+        lastRegistration={lastRegistration}
+        vehiclesByBrand={vehiclesByBrand}
+        customerRegistrationsByMonth={customerRegistrationsByMonth}
+      />
 
       <section aria-label="Resumen de pedidos" className="dashboard-stats">
         <article className="stat-card">
@@ -58,7 +79,10 @@ export default async function Home() {
               <tbody>
                 {activeOrders.map((order) => (
                   <tr key={order.id}>
-                    <td>{order.vehiculo.cliente.nombre} {order.vehiculo.cliente.apellido}</td>
+                    <td>
+                      {order.vehiculo.cliente.nombre}{" "}
+                      {order.vehiculo.cliente.apellido}
+                    </td>
                     <td>{order.vehiculo.placa}</td>
                     <td>{order.descripcion}</td>
                     <td>

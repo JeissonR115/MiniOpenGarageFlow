@@ -17,15 +17,17 @@ model Cliente {
 }
 
 model Vehiculo {
-  id        Int      @id @default(autoincrement())
-  clienteId Int
-  placa     String   @unique
-  marca     String
-  modelo    String
-  anio      Int?
-  color     String?
-  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  pedidos   Pedido[]
+  id            Int        @id @default(autoincrement())
+  clienteId     Int
+  placa         String     @unique
+  marca         String
+  modelo        String
+  anio          Int?
+  color         String?
+  fechaRegistro DateTime   @default(now()) @map("fecha_registro")
+  cliente       Cliente    @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  pedidos       Pedido[]
+  servicios     Servicio[]
 }
 
 model Usuario {
@@ -33,9 +35,21 @@ model Usuario {
   nombre        String
   correo        String   @unique
   passwordHash  String   @map("password_hash")
+  rol           String   @default("administrador")
   fechaRegistro DateTime @default(now()) @map("fecha_registro")
 
   @@map("usuarios")
+}
+
+model Servicio {
+  id          Int      @id @default(autoincrement())
+  vehiculoId  Int      @map("vehiculo_id")
+  fecha       DateTime
+  descripcion String
+  costo       Float
+  vehiculo    Vehiculo @relation(fields: [vehiculoId], references: [id], onDelete: Restrict)
+
+  @@map("servicios")
 }
 
 model Pedido {

@@ -7,7 +7,13 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "e2e": "playwright test",
+    "format": "prettier --write package.json vitest.config.mts commitlint.config.mjs .lintstagedrc.json",
+    "format:check": "prettier --check package.json vitest.config.mts commitlint.config.mjs .lintstagedrc.json",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "prepare": "husky",
     "db:seed": "prisma db seed"
   },
   "dependencies": {
@@ -27,15 +33,26 @@
     "zod": "^4.2.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.4.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.10.1",
     "typescript": "^5.9.0",
     "vitest": "^4.0.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

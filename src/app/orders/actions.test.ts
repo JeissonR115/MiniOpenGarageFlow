@@ -3,12 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   createOrder: vi.fn(),
   deleteOrder: vi.fn(),
+  hasPermission: vi.fn(),
   revalidatePath: vi.fn(),
   updateOrder: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
+}));
+
+vi.mock("@/lib/authorization", () => ({
+  hasPermission: mocks.hasPermission,
 }));
 
 vi.mock("@/lib/orders", () => ({
@@ -43,6 +48,7 @@ function orderForm({
 describe("work order actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.hasPermission.mockResolvedValue(true);
   });
 
   it("creates and updates orders after validation", async () => {
@@ -55,7 +61,9 @@ describe("work order actions", () => {
       estado: "pendiente",
     });
 
-    await expect(saveOrderAction({}, orderForm({ id: "4", estado: "terminado" }))).resolves.toEqual({
+    await expect(
+      saveOrderAction({}, orderForm({ id: "4", estado: "terminado" })),
+    ).resolves.toEqual({
       success: "Pedido actualizado.",
     });
     expect(mocks.updateOrder).toHaveBeenCalledWith({
@@ -68,8 +76,12 @@ describe("work order actions", () => {
   });
 
   it("rejects invalid order input before writing", async () => {
-    await expect(saveOrderAction({}, orderForm({ estado: "otro" }))).resolves.toHaveProperty("error");
-    await expect(saveOrderAction({}, orderForm({ descripcion: " " }))).resolves.toHaveProperty("error");
+    await expect(
+      saveOrderAction({}, orderForm({ estado: "otro" })),
+    ).resolves.toHaveProperty("error");
+    await expect(
+      saveOrderAction({}, orderForm({ descripcion: " " })),
+    ).resolves.toHaveProperty("error");
     expect(mocks.createOrder).not.toHaveBeenCalled();
     expect(mocks.updateOrder).not.toHaveBeenCalled();
   });
@@ -77,11 +89,37 @@ describe("work order actions", () => {
   it("deletes orders and rejects invalid identifiers", async () => {
     const formData = new FormData();
     formData.set("id", "7");
-    await expect(deleteOrderAction({}, formData)).resolves.toEqual({ success: "Pedido eliminado." });
+    await expect(deleteOrderAction({}, formData)).resolves.toEqual({
+      success: "Pedido eliminado.",
+    });
     expect(mocks.deleteOrder).toHaveBeenCalledWith(7);
 
     formData.set("id", "0");
-    await expect(deleteOrderAction({}, formData)).resolves.toHaveProperty("error");
+    await expect(deleteOrderAction({}, formData)).resolves.toHaveProperty(
+      "error",
+    );
     expect(mocks.deleteOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows reception to create but rejects direct update and delete requests", async () => {
+    mocks.hasPermission.mockImplementation(
+      async (permission: string) => permission === "create",
+    );
+
+    await expect(saveOrderAction({}, orderForm())).resolves.toEqual({
+      success: "Pedido registrado.",
+    });
+    await expect(
+      saveOrderAction({}, orderForm({ id: "4" })),
+    ).resolves.toHaveProperty("error");
+
+    const formData = new FormData();
+    formData.set("id", "7");
+    await expect(deleteOrderAction({}, formData)).resolves.toHaveProperty(
+      "error",
+    );
+    expect(mocks.createOrder).toHaveBeenCalledTimes(1);
+    expect(mocks.updateOrder).not.toHaveBeenCalled();
+    expect(mocks.deleteOrder).not.toHaveBeenCalled();
   });
 });

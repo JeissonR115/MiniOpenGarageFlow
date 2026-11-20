@@ -15,11 +15,17 @@ const migration = spawnSync(
 );
 if (migration.error) throw migration.error;
 if (migration.status !== 0) {
-  throw new Error(`Prisma migrate deploy failed with exit code ${migration.status ?? "unknown"}.`);
+  throw new Error(
+    `Prisma migrate deploy failed with exit code ${migration.status ?? "unknown"}.`,
+  );
 }
 
 const administratorSchema = z.object({
-  correo: z.string().trim().email().transform((value) => value.toLowerCase()),
+  correo: z
+    .string()
+    .trim()
+    .email()
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(8),
 });
 const orderStatuses = ["pendiente", "en_proceso", "terminado"] as const;
@@ -54,13 +60,16 @@ async function main() {
     password: process.env.ADMIN_PASSWORD,
   });
   if (!admin.success) {
-    throw new Error("ADMIN_EMAIL must be valid and ADMIN_PASSWORD must contain at least 8 characters.");
+    throw new Error(
+      "ADMIN_EMAIL must be valid and ADMIN_PASSWORD must contain at least 8 characters.",
+    );
   }
   const authSecret = process.env.AUTH_SECRET;
   if (!authSecret || new TextEncoder().encode(authSecret).length < 32) {
     throw new Error("AUTH_SECRET must contain at least 32 bytes.");
   }
 
+  await prisma.servicio.deleteMany();
   await prisma.pedido.deleteMany();
   await prisma.vehiculo.deleteMany();
   await prisma.cliente.deleteMany();
@@ -71,29 +80,43 @@ async function main() {
     update: {
       nombre: "Administrador",
       passwordHash,
+      rol: "administrador",
     },
     create: {
       nombre: "Administrador",
       correo: admin.data.correo,
       passwordHash,
+      rol: "administrador",
     },
   });
 
   if (process.env.NODE_ENV !== "production") {
     for (const demoUser of [
-      { nombre: "Administrador de prueba", correo: "admin@opengarageflow.local", password: "admin" },
-      { nombre: "Usuario de prueba", correo: "user1@opengarageflow.local", password: "user1" },
+      {
+        nombre: "Administrador de prueba",
+        correo: "admin@opengarageflow.local",
+        password: "admin",
+        rol: "administrador",
+      },
+      {
+        nombre: "Usuario de prueba",
+        correo: "user1@opengarageflow.local",
+        password: "user1",
+        rol: "recepcion",
+      },
     ]) {
       await prisma.usuario.upsert({
         where: { correo: demoUser.correo },
         update: {
           nombre: demoUser.nombre,
           passwordHash: await hash(demoUser.password, 12),
+          rol: demoUser.rol,
         },
         create: {
           nombre: demoUser.nombre,
           correo: demoUser.correo,
           passwordHash: await hash(demoUser.password, 12),
+          rol: demoUser.rol,
         },
       });
     }
@@ -119,7 +142,10 @@ async function main() {
       },
     });
 
-    const vehicleCount = index < 3 ? faker.number.int({ min: 2, max: 3 }) : faker.number.int({ min: 1, max: 3 });
+    const vehicleCount =
+      index < 3
+        ? faker.number.int({ min: 2, max: 3 })
+        : faker.number.int({ min: 1, max: 3 });
     for (let vehicleIndex = 0; vehicleIndex < vehicleCount; vehicleIndex += 1) {
       await prisma.vehiculo.create({
         data: {
@@ -128,7 +154,9 @@ async function main() {
           marca: faker.vehicle.manufacturer(),
           modelo: faker.vehicle.model(),
           anio: faker.number.int({ min: 2000, max: 2025 }),
-          color: faker.datatype.boolean({ probability: 0.75 }) ? faker.vehicle.color() : null,
+          color: faker.datatype.boolean({ probability: 0.75 })
+            ? faker.vehicle.color()
+            : null,
         },
       });
     }
@@ -150,22 +178,41 @@ async function main() {
         descripcion: faker.helpers.arrayElement(descriptions),
         estado: orderStatuses[index % orderStatuses.length],
         fechaCreacion: faker.date.recent({ refDate: now, days: 14 }),
-        fechaTerminacion: orderStatuses[index % orderStatuses.length] === "terminado" ? now : null,
+        fechaTerminacion:
+          orderStatuses[index % orderStatuses.length] === "terminado"
+            ? now
+            : null,
+      },
+    });
+    await prisma.servicio.create({
+      data: {
+        vehiculoId: vehicle.id,
+        fecha: faker.date.recent({ refDate: now, days: 180 }),
+        descripcion: faker.helpers.arrayElement(descriptions),
+        costo: faker.number.float({
+          min: 0,
+          max: 1_000_000,
+          fractionDigits: 0,
+        }),
       },
     });
   }
 
-  const [customerCount, vehicleCount, orderCount] = await Promise.all([
-    prisma.cliente.count(),
-    prisma.vehiculo.count(),
-    prisma.pedido.count(),
-  ]);
+  const [customerCount, vehicleCount, orderCount, serviceCount] =
+    await Promise.all([
+      prisma.cliente.count(),
+      prisma.vehiculo.count(),
+      prisma.pedido.count(),
+      prisma.servicio.count(),
+    ]);
   const userCount = await prisma.usuario.count();
   console.log(
-    `Seed completado: ${userCount} usuarios, ${customerCount} clientes, ${vehicleCount} vehículos y ${orderCount} pedidos.`,
+    `Seed completado: ${userCount} usuarios, ${customerCount} clientes, ${vehicleCount} vehículos, ${orderCount} pedidos y ${serviceCount} servicios.`,
   );
   if (process.env.NODE_ENV !== "production") {
-    console.log("Usuarios de prueba: admin@opengarageflow.local / admin; user1@opengarageflow.local / user1.");
+    console.log(
+      "Usuarios de prueba: admin@opengarageflow.local / admin; user1@opengarageflow.local / user1.",
+    );
   }
 }
 
